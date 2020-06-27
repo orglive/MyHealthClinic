@@ -1,0 +1,46 @@
+name: Pipeline Inicial
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      
+    - name: Setup Node
+      uses: actions/setup-node@v1.4.2
+      
+    - name: Dotnet Restore
+      run: dotnet restore MHC_ASPNetCore.sln
+      
+    - name: NPM Install Bower
+      run: npm install -g bower
+      working-directory: 'src/MyHealth.Web'
+      
+    - name: NPM Install 
+      run: npm install 
+      working-directory: 'src/MyHealth.Web'      
+
+    - name: Build with dotnet
+      run: dotnet build MHC_ASPNetCore.sln --configuration Release
+      
+    - name: DotNet Test
+      run: dotnet test MHC_ASPNetCore.sln --configuration Release --logger:trx;logfilename=TEST.xml
+      
+    - name: Dotnet Publish
+      run: dotnet publish MHC_ASPNetCore.sln --configuration Release -o netcore 
+  
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: artifact
+        path: /home/runner/work/MyHealthClinic/MyHealthClinic/netcore/
+
